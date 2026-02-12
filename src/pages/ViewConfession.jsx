@@ -1,0 +1,229 @@
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import { Heart, Eye, ArrowLeft, Share2 } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { useConfession } from '@/hooks/useConfessions';
+import { useHaptic } from '@/hooks/useHaptic';
+import { confessionAPI } from '@/lib/supabase';
+import { formatDate, getMoodEmoji, getSessionId } from '@/lib/utils';
+import { REACTION_TYPES } from '@/lib/constants';
+import toast from 'react-hot-toast';
+
+const ViewConfession = () => {
+    const { code } = useParams();
+    const navigate = useNavigate();
+    const haptic = useHaptic();
+    const { confession, loading, error } = useConfession(code);
+    const [reactions, setReactions] = useState({ hearts: 0, smiles: 0, tears: 0 });
+
+    useEffect(() => {
+        if (confession) {
+            setReactions(confession.reactions || { hearts: 0, smiles: 0, tears: 0 });
+        }
+    }, [confession]);
+
+    const handleReaction = async (type) => {
+        try {
+            haptic.medium();
+            const sessionId = getSessionId();
+
+            await confessionAPI.addReaction(confession.id, type, sessionId);
+
+            // Update local state
+            setReactions((prev) => ({
+                ...prev,
+                [type]: prev[type] + 1,
+            }));
+
+            // Mini celebration
+            confetti({
+                particleCount: 30,
+                spread: 50,
+                origin: { y: 0.7 },
+                colors: ['#ff4d6d'],
+            });
+
+            toast.success('Reaction added! 💝');
+        } catch (error) {
+            // Likely duplicate reaction
+            toast.error('You already reacted with this!');
+            haptic.error();
+        }
+    };
+
+    const handleShare = async () => {
+        const url = window.location.href;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: "Valentine's Confession",
+                    text: 'Check out this confession!',
+                    url: url,
+                });
+                haptic.success();
+            } catch (error) {
+                // User cancelled share
+            }
+        } else {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(url);
+            toast.success('Link copied to clipboard!');
+            haptic.success();
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading confession...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !confession) {
+        return (
+            <div className="min-h-screen flex items-center justify-center px-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-center max-w-md"
+                >
+                    <div className="text-6xl mb-6">💔</div>
+                    <h1 className="text-2xl font-bold mb-4">Confession Not Found</h1>
+                    <p className="text-gray-400 mb-8">
+                        This confession doesn't exist or has been removed.
+                    </p>
+                    <Button onClick={() => navigate('/search')}>
+                        <ArrowLeft className="w-5 h-5 mr-2" />
+                        Search Again
+                    </Button>
+                </motion.div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen py-12 px-4">
+            <div className="max-w-3xl mx-auto">
+                {/* Header Actions */}
+                <div className="flex justify-between items-center mb-8">
+                    <Button variant="ghost" onClick={() => navigate('/')}>
+                        <ArrowLeft className="w-5 h-5 mr-2" />
+                        Home
+                    </Button>
+                    <Button variant="ghost" onClick={handleShare}>
+                        <Share2 className="w-5 h-5 mr-2" />
+                        Share
+                    </Button>
+                </div>
+
+                {/* Main Confession Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                >
+                    <Card className="mb-8">
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-6">
+                            <div>
+                                <span className="inline-block px-3 py-1 bg-primary-500/20 text-primary-400 rounded-full text-sm mb-2">
+                                    {confession.mood && getMoodEmoji(confession.mood)} {confession.mood}
+                                </span>
+                                <p className="text-sm text-gray-400">
+                                    {formatDate(confession.created_at)}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2 text-gray-400">
+                                <Eye className="w-4 h-4" />
+                                <span className="text-sm">{confession.views || 0}</span>
+                            </div>
+                        </div>
+
+                        {/* Message */}
+                        <div className="mb-6">
+                            <p className="text-lg leading-relaxed whitespace-pre-wrap">
+                                {confession.message}
+                            </p>
+                        </div>
+
+                        {/* College Info */}
+                        <div className="grid md:grid-cols-3 gap-4 mb-6 p-4 bg-white/5 rounded-xl">
+                            <div>
+                                <p className="text-sm text-gray-400">College</p>
+                                <p className="font-medium">{confession.college_name}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-400">Department</p>
+                                <p className="font-medium">{confession.department}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-400">Year</p>
+                                <p className="font-medium">{confession.year_or_batch}</p>
+                            </div>
+                        </div>
+
+                        {/* Hints */}
+                        {confession.recipient_hint && (
+                            <div className="mb-6 p-4 bg-primary-500/10 border border-primary-500/20 rounded-xl">
+                                <p className="text-sm text-gray-400 mb-1">Hints:</p>
+                                <p className="text-primary-300">{confession.recipient_hint}</p>
+                            </div>
+                        )}
+
+                        {/* Sender Info */}
+                        <div className="pt-6 border-t border-white/10">
+                            <p className="text-sm text-gray-400">
+                                From:{' '}
+                                <span className="text-white font-medium">
+                                    {confession.is_anonymous ? 'Anonymous 🎭' : confession.sender_name}
+                                </span>
+                            </p>
+                            {confession.additional_message && !confession.is_anonymous && (
+                                <p className="text-sm text-gray-300 mt-2 italic">
+                                    "{confession.additional_message}"
+                                </p>
+                            )}
+                        </div>
+                    </Card>
+
+                    {/* Reactions */}
+                    <Card className="mb-8">
+                        <h3 className="text-lg font-semibold mb-4">React to this confession</h3>
+                        <div className="flex gap-4">
+                            {REACTION_TYPES.map((reaction) => (
+                                <button
+                                    key={reaction.type}
+                                    onClick={() => handleReaction(reaction.type)}
+                                    className="flex-1 flex flex-col items-center gap-2 p-4 glass rounded-xl hover:bg-white/10 transition-all active:scale-95"
+                                >
+                                    <span className="text-4xl">{reaction.emoji}</span>
+                                    <span className="text-sm text-gray-400">{reaction.label}</span>
+                                    <span className="text-primary-400 font-bold">
+                                        {reactions[reaction.type] || 0}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </Card>
+
+                    {/* Unique Code */}
+                    <div className="text-center p-6 glass rounded-2xl">
+                        <p className="text-sm text-gray-400 mb-2">Unique Code:</p>
+                        <p className="text-2xl font-mono font-bold text-primary-400 tracking-wider">
+                            {confession.unique_code}
+                        </p>
+                    </div>
+                </motion.div>
+            </div>
+        </div>
+    );
+};
+
+export default ViewConfession;

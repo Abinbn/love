@@ -1,0 +1,34 @@
+{
+    "name": "Valentine's Confessions",
+    "short_name": "Confessions",
+    "description": "Send anonymous Valentine's confessions to your college crush",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0d0106",
+    "theme_color": "#ff4d6d",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/heart.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "social",
+        "entertainment"
+    ],
+    "shortcuts": [
+        {
+            "name": "Send Confession",
+            "url": "/confess",
+            "description": "Send a new confession"
+        },
+        {
+            "name": "Find Letter",
+            "url": "/search",
+            "description": "Search for your confession"
+        }
+    ]
+}
