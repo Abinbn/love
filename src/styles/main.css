@@ -1,0 +1,494 @@
+:root {
+  --text-color: #ffffff;
+  --star-color: #ff4d6d;
+  --accent-color: #ff758f;
+  --primary-color: #c9184a;
+  --background-color: #0d0106;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Outfit', 'Inter', 'Arial', sans-serif;
+  background: radial-gradient(ellipse at bottom, #3d0a1a 0%, #0d0106 100%);
+  color: var(--text-color);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+#starry-sky {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 0;
+}
+
+#content-wrapper {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+
+header {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.5));
+}
+
+h1 {
+  font-size: 3.5rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 20px rgba(255, 77, 109, 0.5);
+  background: linear-gradient(to right, #ff4d6d, #ffb3c1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+}
+
+button {
+  background: transparent;
+  border: 2px solid var(--star-color);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 77, 109, 0.2);
+}
+
+button:hover {
+  background: var(--star-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(255, 77, 109, 0.4);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  /* padding: 2rem; */
+  overflow: hidden;
+}
+
+.modal-content {
+  position: relative;
+  background: rgba(27, 39, 53, 0.95);
+  padding: 2rem;
+  border-radius: 15px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  margin: auto;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: auto;
+  /* display: flex;
+  flex-direction: column; */
+}
+
+.modal-content .wish-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-content .wish-text {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.modal-content .wish-text.truncated {
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.read-more-btn {
+  background: none;
+  border: none;
+  color: var(--star-color);
+  cursor: pointer;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  transition: all 0.3s ease;
+  text-decoration: underline;
+}
+
+.read-more-btn:hover {
+  opacity: 0.8;
+}
+
+.wish-actions,
+.wish-reactions,
+.wish-footer {
+  position: sticky;
+  bottom: 0;
+  padding: 1rem 0;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 77, 109, 0.1);
+}
+
+/* Custom scrollbar */
+.wish-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wish-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.wish-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.wish-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Ensure modal is centered on larger screens */
+@media (min-height: 800px) {
+  .modal-content {
+    margin: auto;
+  }
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  width: 30px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.recent-wishes,
+.top-wishes {
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.wishes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.wish-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 1.5rem;
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  height: 150px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.wish-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.wish-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.wish-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wish-likes {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.love-reaction {
+  background: transparent;
+  border: 2px solid rgba(255, 77, 109, 0.3);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.love-reaction:hover {
+  border-color: var(--star-color);
+  background: rgba(255, 77, 109, 0.1);
+  transform: translateY(-2px);
+}
+
+.reaction-added {
+  animation: pulse 0.5s ease;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.anonymous-group label {
+  cursor: pointer;
+}
+
+.required {
+  color: #ff4444;
+  margin-left: 0.25rem;
+}
+
+input[type="text"],
+input[type="email"],
+textarea {
+  width: 95%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 1rem;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.wish-id {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.star-tooltip {
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+}
+
+.star-tooltip .wish-id {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-bottom: 0.25rem;
+}
+
+#name-group {
+  transition: all 0.3s ease;
+}
+
+#name-group.hidden {
+  display: none;
+}
+
+#wish-tooltip {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--text-color);
+  padding: 1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  pointer-events: none;
+  z-index: 1000;
+  max-width: 250px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.wish-id-popup .modal-content {
+  text-align: center;
+}
+
+.wish-id-popup .wish-id {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--star-color);
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.wish-id-popup .note {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.share-modal .modal-content {
+  max-width: 400px;
+}
+
+.share-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.share-btn:hover {
+  transform: translateY(-2px);
+}
+
+.share-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+.share-btn.twitter {
+  background: #1DA1F2;
+}
+
+.share-btn.facebook {
+  background: #4267B2;
+}
+
+.share-btn.whatsapp {
+  background: #25D366;
+}
+
+.share-btn.telegram {
+  background: #0088cc;
+}
+
+.wish-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+#send-cheer-btn {
+  background: linear-gradient(45deg, #ff4d6d, #ff8fa3);
+  border: none;
+  color: white;
+  font-weight: bold;
+}
+
+#send-cheer-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 0 15px rgba(255, 77, 109, 0.5);
+}
+
+.char-limit {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.5rem;
+  display: block;
+}
+
+.wish-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wish-likes {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}

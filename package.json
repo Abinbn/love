@@ -1,0 +1,19 @@
+{
+  "name": "wish-upon-valentine-star",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.158.0",
+    "uuid": "^9.0.1",
+    "canvas-confetti": "^1.9.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
