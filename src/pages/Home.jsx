@@ -58,14 +58,17 @@ const Home = () => {
     return (
         <div className="min-h-screen py-12 px-4">
             {/* Header with Logo */}
-            <div className="max-w-7xl mx-auto mb-8">
+            <div className="max-w-7xl mx-auto mb-12">
                 <div className="flex justify-center">
-                    <img
-                        src="/esb-logo.png"
-                        alt="eSchoolbooks"
-                        className="h-12 md:h-16 object-contain opacity-90 hover:opacity-100 transition-opacity"
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                    />
+                    <div className="bg-white rounded-3xl p-6 shadow-xl flex flex-col items-center gap-3">
+                        <img
+                            src="/esb-logo.png"
+                            alt="eSchoolbooks"
+                            className="h-16 md:h-20 object-contain"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                        <span className="text-gray-900 font-bold text-xl tracking-tight">ESchoolBooks</span>
+                    </div>
                 </div>
             </div>
 
@@ -276,16 +279,19 @@ const Home = () => {
 
             {/* Footer */}
             <footer className="mt-16 py-8 px-4 text-center">
-                <div className="mb-4 flex justify-center">
-                    <img
-                        src="/esb-logo.png"
-                        alt="eSchoolbooks"
-                        className="h-8 md:h-10 object-contain opacity-70 hover:opacity-100 transition-opacity"
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                    />
+                <div className="mb-6 flex justify-center">
+                    <div className="bg-white rounded-2xl px-6 py-3 shadow-lg inline-flex items-center gap-4">
+                        <img
+                            src="/esb-logo.png"
+                            alt="eSchoolbooks"
+                            className="h-10 md:h-12 object-contain"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                        <span className="text-gray-900 font-bold text-lg">ESchoolBooks</span>
+                    </div>
                 </div>
                 <p className="text-gray-400 text-sm">Made with ❤️ for Valentine's Day 2026</p>
-                <p className="text-gray-500 text-xs mt-2">Powered by eSchoolbooks</p>
+                <p className="text-gray-500 text-xs mt-2">Powered by ESchoolBooks</p>
             </footer>
         </div>
     );
