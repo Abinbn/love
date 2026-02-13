@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import confetti from 'canvas-confetti';
 import toast from 'react-hot-toast';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Sparkles } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useHaptic } from '@/hooks/useHaptic';
 import { confessionAPI } from '@/lib/supabase';
+import { enhanceConfession } from '@/lib/gemini';
 import { messageSchema, collegeSchema, personalSchema } from '@/lib/validation';
 import { generateUniqueCode, getMoodEmoji } from '@/lib/utils';
 import { MOODS, YEARS, MAX_MESSAGE_LENGTH } from '@/lib/constants';
@@ -23,6 +24,8 @@ const Confess = () => {
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useLocalStorage('confession_draft', {});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [useAI, setUseAI] = useState(true);
+    const [isEnhancing, setIsEnhancing] = useState(false);
 
     const totalSteps = 4;
 
@@ -61,7 +64,24 @@ const Confess = () => {
         } else if (currentStep === 3) {
             isValid = await step3Form.trigger();
             if (isValid) {
-                setFormData({ ...formData, ...step3Form.getValues() });
+                const step3Data = step3Form.getValues();
+                const mergedData = { ...formData, ...step3Data };
+                setFormData(mergedData);
+
+                // Enhance message with AI if enabled
+                if (useAI && import.meta.env.VITE_GEMINI_API_KEY && import.meta.env.VITE_GEMINI_API_KEY !== 'your_gemini_api_key') {
+                    setIsEnhancing(true);
+                    try {
+                        const enhancedMessage = await enhanceConfession(mergedData);
+                        setFormData({ ...mergedData, message: enhancedMessage, originalMessage: mergedData.message });
+                        toast.success('✨ Message enhanced with AI!');
+                    } catch (error) {
+                        console.error('AI enhancement failed:', error);
+                        toast.error('AI enhancement failed, using original message');
+                    } finally {
+                        setIsEnhancing(false);
+                    }
+                }
             }
         }
 
@@ -132,6 +152,22 @@ const Confess = () => {
 
     return (
         <div className="min-h-screen py-12 px-4">
+            {/* AI Enhancement Loading Overlay */}
+            {isEnhancing && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                    <div className="text-center glass rounded-3xl p-8 max-w-md">
+                        <Sparkles className="w-16 h-16 text-primary-500 mx-auto mb-4 animate-pulse" />
+                        <h3 className="text-2xl font-bold mb-2">Enhancing with AI ✨</h3>
+                        <p className="text-gray-400">Making your confession more beautiful...</p>
+                        <div className="mt-4 flex gap-2 justify-center">
+                            <div className="w-3 h-3 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                            <div className="w-3 h-3 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                            <div className="w-3 h-3 bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-12">
@@ -141,6 +177,24 @@ const Confess = () => {
                     <p className="text-gray-400">
                         Step {currentStep} of {totalSteps}
                     </p>
+
+                    {/* AI Toggle */}
+                    {import.meta.env.VITE_GEMINI_API_KEY && import.meta.env.VITE_GEMINI_API_KEY !== 'your_gemini_api_key' && (
+                        <div className="mt-4 inline-flex items-center gap-3 glass rounded-full px-4 py-2">
+                            <Sparkles className="w-4 h-4 text-primary-400" />
+                            <span className="text-sm">AI Enhancement</span>
+                            <button
+                                onClick={() => setUseAI(!useAI)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${useAI ? 'bg-primary-500' : 'bg-gray-600'
+                                    }`}
+                            >
+                                <span
+                                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${useAI ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Progress Bar */}

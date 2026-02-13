@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Heart, Eye, ArrowLeft, Share2 } from 'lucide-react';
+import { Heart, Eye, ArrowLeft, Share2, Music } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useConfession } from '@/hooks/useConfessions';
 import { useHaptic } from '@/hooks/useHaptic';
 import { confessionAPI } from '@/lib/supabase';
+import { getMusicEmbed } from '@/lib/gemini';
 import { formatDate, getMoodEmoji, getSessionId } from '@/lib/utils';
 import { REACTION_TYPES } from '@/lib/constants';
 import toast from 'react-hot-toast';
@@ -18,10 +19,17 @@ const ViewConfession = () => {
     const haptic = useHaptic();
     const { confession, loading, error } = useConfession(code);
     const [reactions, setReactions] = useState({ hearts: 0, smiles: 0, tears: 0 });
+    const [musicEmbed, setMusicEmbed] = useState(null);
 
     useEffect(() => {
         if (confession) {
             setReactions(confession.reactions || { hearts: 0, smiles: 0, tears: 0 });
+
+            // Get music embed if song link exists
+            if (confession.song_link) {
+                const embed = getMusicEmbed(confession.song_link);
+                setMusicEmbed(embed);
+            }
         }
     }, [confession]);
 
@@ -154,17 +162,49 @@ const ViewConfession = () => {
                         </div>
 
                         {/* Song Link */}
-                        {confession.song_link && (
-                            <div className="mb-6 p-4 bg-primary-500/10 border border-primary-500/20 rounded-xl">
-                                <p className="text-sm text-gray-400 mb-2">Song Link 🎵</p>
-                                <a
-                                    href={confession.song_link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-primary-400 hover:text-primary-300 break-all underline"
-                                >
-                                    {confession.song_link}
-                                </a>
+                        {musicEmbed && (
+                            <div className="mb-6">
+                                {musicEmbed.type === 'youtube' && (
+                                    <div className="aspect-video rounded-xl overflow-hidden border-2 border-primary-500/20">
+                                        <iframe
+                                            width="100%"
+                                            height="100%"
+                                            src={musicEmbed.embedUrl}
+                                            title="Song"
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        ></iframe>
+                                    </div>
+                                )}
+                                {musicEmbed.type === 'spotify' && (
+                                    <div className="rounded-xl overflow-hidden border-2 border-primary-500/20">
+                                        <iframe
+                                            src={musicEmbed.embedUrl}
+                                            width="100%"
+                                            height="152"
+                                            frameBorder="0"
+                                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                            loading="lazy"
+                                        ></iframe>
+                                    </div>
+                                )}
+                                {musicEmbed.type === 'link' && (
+                                    <div className="p-4 bg-primary-500/10 border border-primary-500/20 rounded-xl">
+                                        <p className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                                            <Music className="w-4 h-4" />
+                                            Song Link 🎵
+                                        </p>
+                                        <a
+                                            href={musicEmbed.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary-400 hover:text-primary-300 break-all underline"
+                                        >
+                                            {musicEmbed.link}
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         )}
 
