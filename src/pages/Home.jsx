@@ -57,6 +57,18 @@ const Home = () => {
 
     return (
         <div className="min-h-screen py-12 px-4">
+            {/* Header with Logo */}
+            <div className="max-w-7xl mx-auto mb-8">
+                <div className="flex justify-center">
+                    <img
+                        src="/esb-logo.png"
+                        alt="eSchoolbooks"
+                        className="h-12 md:h-16 object-contain opacity-90 hover:opacity-100 transition-opacity"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                </div>
+            </div>
+
             {/* Floating hearts background */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
                 {[...Array(20)].map((_, i) => (
@@ -263,8 +275,17 @@ const Home = () => {
             </div>
 
             {/* Footer */}
-            <footer className="mt-16 py-8 px-4 text-center text-gray-400 text-sm">
-                <p>Made with ❤️ for Valentine's Day 2026</p>
+            <footer className="mt-16 py-8 px-4 text-center">
+                <div className="mb-4 flex justify-center">
+                    <img
+                        src="/esb-logo.png"
+                        alt="eSchoolbooks"
+                        className="h-8 md:h-10 object-contain opacity-70 hover:opacity-100 transition-opacity"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                </div>
+                <p className="text-gray-400 text-sm">Made with ❤️ for Valentine's Day 2026</p>
+                <p className="text-gray-500 text-xs mt-2">Powered by eSchoolbooks</p>
             </footer>
         </div>
     );

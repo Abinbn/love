@@ -5,9 +5,8 @@ import confetti from 'canvas-confetti';
 import { Heart, Eye, ArrowLeft, Share2, Music } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { useConfession } from '@/hooks/useConfessions';
 import { useHaptic } from '@/hooks/useHaptic';
-import { confessionAPI } from '@/lib/supabase';
+import { confessionAPI, supabase } from '@/lib/supabase';
 import { getMusicEmbed } from '@/lib/gemini';
 import { formatDate, getMoodEmoji, getSessionId } from '@/lib/utils';
 import { REACTION_TYPES } from '@/lib/constants';
@@ -17,23 +16,90 @@ const ViewConfession = () => {
     const { code } = useParams();
     const navigate = useNavigate();
     const haptic = useHaptic();
-    const { confession, loading, error } = useConfession(code);
+    const [confession, setConfession] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [reactions, setReactions] = useState({ hearts: 0, smiles: 0, tears: 0 });
+    const [userReactions, setUserReactions] = useState(new Set());
     const [musicEmbed, setMusicEmbed] = useState(null);
 
     useEffect(() => {
-        if (confession) {
-            setReactions(confession.reactions || { hearts: 0, smiles: 0, tears: 0 });
+        if (!code) return;
 
-            // Get music embed if song link exists
-            if (confession.song_link) {
-                const embed = getMusicEmbed(confession.song_link);
-                setMusicEmbed(embed);
+        const fetchConfession = async () => {
+            try {
+                setLoading(true);
+                const data = await confessionAPI.getByCode(code);
+                setConfession(data);
+
+                // Increment views
+                if (data?.id) {
+                    await confessionAPI.incrementViews(data.id);
+
+                    // Fetch reactions count
+                    await fetchReactions(data.id);
+                }
+
+                // Get music embed if song link exists
+                if (data?.song_link) {
+                    const embed = getMusicEmbed(data.song_link);
+                    setMusicEmbed(embed);
+                }
+
+                setError(null);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
             }
+        };
+
+        fetchConfession();
+    }, [code]);
+
+    const fetchReactions = async (confessionId) => {
+        try {
+            // Get all reactions for this confession
+            const { data: reactionData, error } = await supabase
+                .from('confession_reactions')
+                .select('reaction_type, session_identifier')
+                .eq('confession_id', confessionId);
+
+            if (error) throw error;
+
+            // Count reactions by type
+            const counts = { hearts: 0, smiles: 0, tears: 0 };
+            const sessionId = getSessionId();
+            const userReacted = new Set();
+
+            reactionData?.forEach((reaction) => {
+                if (counts[reaction.reaction_type] !== undefined) {
+                    counts[reaction.reaction_type]++;
+                }
+
+                // Track if current user has reacted
+                if (reaction.session_identifier === sessionId) {
+                    userReacted.add(reaction.reaction_type);
+                }
+            });
+
+            setReactions(counts);
+            setUserReactions(userReacted);
+        } catch (error) {
+            console.error('Error fetching reactions:', error);
         }
-    }, [confession]);
+    };
 
     const handleReaction = async (type) => {
+        if (!confession?.id) return;
+
+        // Check if user already reacted with this type
+        if (userReactions.has(type)) {
+            toast.error('You already reacted with this!');
+            haptic.error();
+            return;
+        }
+
         try {
             haptic.medium();
             const sessionId = getSessionId();
@@ -46,6 +112,8 @@ const ViewConfession = () => {
                 [type]: prev[type] + 1,
             }));
 
+            setUserReactions((prev) => new Set(prev).add(type));
+
             // Mini celebration
             confetti({
                 particleCount: 30,
@@ -56,8 +124,8 @@ const ViewConfession = () => {
 
             toast.success('Reaction added! 💝');
         } catch (error) {
-            // Likely duplicate reaction
-            toast.error('You already reacted with this!');
+            console.error('Reaction error:', error);
+            toast.error('Failed to add reaction');
             haptic.error();
         }
     };
@@ -251,20 +319,25 @@ const ViewConfession = () => {
                     {/* Reactions */}
                     <Card className="mb-8">
                         <h3 className="text-lg font-semibold mb-4">React to this confession</h3>
-                        <div className="flex gap-4">
-                            {REACTION_TYPES.map((reaction) => (
-                                <button
-                                    key={reaction.type}
-                                    onClick={() => handleReaction(reaction.type)}
-                                    className="flex-1 flex flex-col items-center gap-2 p-4 glass rounded-xl hover:bg-white/10 transition-all active:scale-95"
-                                >
-                                    <span className="text-4xl">{reaction.emoji}</span>
-                                    <span className="text-sm text-gray-400">{reaction.label}</span>
-                                    <span className="text-primary-400 font-bold">
-                                        {reactions[reaction.type] || 0}
-                                    </span>
-                                </button>
-                            ))}
+                        <div className="flex justify-center gap-4 mb-8">
+                            {Object.entries(REACTION_TYPES).map(([type, emoji]) => {
+                                const hasReacted = userReactions.has(type);
+                                return (
+                                    <button
+                                        key={type}
+                                        onClick={() => handleReaction(type)}
+                                        disabled={hasReacted}
+                                        className={`glass rounded-full px-6 py-3 flex items-center gap-3 transition-all ${hasReacted
+                                                ? 'bg-primary-500/30 cursor-not-allowed opacity-75'
+                                                : 'hover:bg-white/10 hover:scale-110 active:scale-95'
+                                            }`}
+                                    >
+                                        <span className="text-2xl">{emoji}</span>
+                                        <span className="font-semibold">{reactions[type] || 0}</span>
+                                        {hasReacted && <span className="text-xs text-primary-400">✓</span>}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </Card>
 
