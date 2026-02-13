@@ -331,8 +331,8 @@ const Step1Message = ({ form }) => {
                 </div>
 
                 <Input
-                    label="Song Link (Optional)"
-                    placeholder="https://spotify.com/..."
+                    label="YouTube or Spotify Link (Optional)"
+                    placeholder="https://youtube.com/... or https://open.spotify.com/..."
                     error={errors.songLink?.message}
                     {...register('songLink')}
                     className="mt-6"
