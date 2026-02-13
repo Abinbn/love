@@ -1,21 +1,9 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart, Search, Shield, Sparkles } from 'lucide-react';
+import { Heart, Search, Shield, Sparkles, Lock, Star } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { getCountdown } from '@/lib/utils';
 
 const Home = () => {
-    const [countdown, setCountdown] = useState(getCountdown());
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCountdown(getCountdown());
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, []);
-
     return (
         <div className="min-h-screen flex flex-col">
             {/* Floating hearts background */}
@@ -56,38 +44,11 @@ const Home = () => {
                         </p>
                     </motion.div>
 
-                    {/* Countdown Timer */}
-                    {!countdown.isPast && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="glass rounded-3xl p-8 inline-block"
-                        >
-                            <p className="text-sm text-gray-400 mb-4">Confessions unlock in:</p>
-                            <div className="grid grid-cols-4 gap-4">
-                                {[
-                                    { label: 'Days', value: countdown.days },
-                                    { label: 'Hours', value: countdown.hours },
-                                    { label: 'Minutes', value: countdown.minutes },
-                                    { label: 'Seconds', value: countdown.seconds },
-                                ].map((item) => (
-                                    <div key={item.label} className="text-center">
-                                        <div className="text-4xl font-bold gradient-text">
-                                            {item.value.toString().padStart(2, '0')}
-                                        </div>
-                                        <div className="text-xs text-gray-400 mt-1">{item.label}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-
                     {/* CTA Buttons */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
+                        transition={{ delay: 0.3 }}
                         className="flex flex-col sm:flex-row gap-4 justify-center"
                     >
                         <Link to="/confess">
@@ -108,7 +69,7 @@ const Home = () => {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.7 }}
+                        transition={{ delay: 0.5 }}
                         className="grid md:grid-cols-3 gap-6 mt-16"
                     >
                         <div className="glass rounded-2xl p-6">
@@ -119,10 +80,10 @@ const Home = () => {
                             </p>
                         </div>
                         <div className="glass rounded-2xl p-6">
-                            <Sparkles className="w-12 h-12 text-primary-500 mb-4 mx-auto" />
-                            <h3 className="font-semibold text-lg mb-2">College Specific</h3>
+                            <Star className="w-12 h-12 text-primary-500 mb-4 mx-auto" />
+                            <h3 className="font-semibold text-lg mb-2">Unique Codes</h3>
                             <p className="text-sm text-gray-400">
-                                Add department, year, and hints to help them find you
+                                Each confession gets a special code to find it later
                             </p>
                         </div>
                         <div className="glass rounded-2xl p-6">

@@ -78,12 +78,30 @@ const Confess = () => {
     const handleSubmit = async () => {
         try {
             setIsSubmitting(true);
+
+            // Map form data to database schema
             const finalData = {
-                ...formData,
+                message: formData.message,
+                mood: formData.mood || null,
+                song_link: formData.songLink || null,
+                college_name: formData.collegeName,
+                department: formData.department || null,
+                year_or_batch: formData.yearOrBatch,
+                section: formData.section || null,
+                recipient_hint: formData.recipientHint || null,
+                is_anonymous: formData.isAnonymous !== false, // Default true
+                sender_name: formData.isAnonymous ? null : (formData.senderName || null),
+                sender_email: formData.isAnonymous ? null : (formData.senderEmail || null),
+                sender_phone: formData.isAnonymous ? null : (formData.senderPhone || null),
+                sender_section: formData.isAnonymous ? null : (formData.senderSection || null),
+                additional_message: formData.isAnonymous ? null : (formData.additionalMessage || null),
                 unique_code: generateUniqueCode(),
+                status: 'approved', // Auto-approve
             };
 
+            console.log('Submitting confession:', finalData);
             const confession = await confessionAPI.createConfession(finalData);
+            console.log('Confession created:', confession);
 
             // Clear draft
             setFormData({});
@@ -104,9 +122,9 @@ const Confess = () => {
                 navigate(`/confession/${confession.unique_code}`);
             }, 2000);
         } catch (error) {
-            console.error(error);
+            console.error('Submission error:', error);
             haptic.error();
-            toast.error('Failed to send confession. Please try again.');
+            toast.error(`Failed to send confession: ${error.message || 'Please check your Supabase connection'}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -132,8 +150,8 @@ const Confess = () => {
                             <div
                                 key={step}
                                 className={`flex items-center justify-center w-10 h-10 rounded-full ${step <= currentStep
-                                        ? 'bg-gradient-to-r from-primary-500 to-pink-500 text-white'
-                                        : 'bg-white/10 text-gray-500'
+                                    ? 'bg-gradient-to-r from-primary-500 to-pink-500 text-white'
+                                    : 'bg-white/10 text-gray-500'
                                     }`}
                             >
                                 {step < currentStep ? <Check className="w-5 h-5" /> : step}
@@ -169,21 +187,31 @@ const Confess = () => {
                 {/* Navigation */}
                 <div className="flex gap-4 justify-between mt-8">
                     {currentStep > 1 && (
-                        <Button variant="secondary" onClick={handleBack}>
-                            <ArrowLeft className="w-5 h-5 mr-2" />
-                            Back
-                        </Button>
+                        <button
+                            onClick={handleBack}
+                            className="flex items-center gap-2 px-6 py-3 rounded-2xl border-2 border-primary-500 text-primary-400 font-semibold transition-all hover:bg-primary-500/10 active:scale-95"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                            <span>Back</span>
+                        </button>
                     )}
                     <div className="flex-1" />
                     {currentStep < totalSteps ? (
-                        <Button onClick={handleNext}>
-                            Next
-                            <ArrowRight className="w-5 h-5 ml-2" />
-                        </Button>
+                        <button
+                            onClick={handleNext}
+                            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-primary-500 to-pink-500 text-white font-semibold transition-all hover:shadow-lg hover:shadow-primary-500/50 active:scale-95"
+                        >
+                            <span>Next</span>
+                            <ArrowRight className="w-5 h-5" />
+                        </button>
                     ) : (
-                        <Button onClick={handleSubmit} disabled={isSubmitting}>
-                            {isSubmitting ? 'Sending...' : 'Send Confession'} 💝
-                        </Button>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-primary-500 to-pink-500 text-white font-semibold transition-all hover:shadow-lg hover:shadow-primary-500/50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span>{isSubmitting ? 'Sending...' : 'Send Confession'} 💝</span>
+                        </button>
                     )}
                 </div>
             </div>
@@ -195,6 +223,7 @@ const Confess = () => {
 const Step1Message = ({ form }) => {
     const { register, formState: { errors }, watch } = form;
     const message = watch('message') || '';
+    const selectedMood = watch('mood');
 
     return (
         <motion.div
@@ -225,7 +254,10 @@ const Step1Message = ({ form }) => {
                         {MOODS.map((mood) => (
                             <label
                                 key={mood.value}
-                                className="glass rounded-xl p-4 cursor-pointer hover:bg-white/10 transition-all"
+                                className={`glass rounded-xl p-4 cursor-pointer transition-all ${selectedMood === mood.value
+                                    ? 'bg-primary-500/20 border-2 border-primary-500'
+                                    : 'hover:bg-white/10 border-2 border-transparent'
+                                    }`}
                             >
                                 <input
                                     type="radio"
@@ -258,7 +290,8 @@ const Step1Message = ({ form }) => {
 
 // Step 2: College Details
 const Step2College = ({ form }) => {
-    const { register, formState: { errors } } = form;
+    const { register, formState: { errors }, watch } = form;
+    const recipientHint = watch('recipientHint') || '';
 
     return (
         <motion.div
@@ -317,6 +350,7 @@ const Step2College = ({ form }) => {
                         rows={3}
                         maxLength={200}
                         showCount
+                        value={recipientHint}
                         error={errors.recipientHint?.message}
                         {...register('recipientHint')}
                     />
@@ -330,6 +364,7 @@ const Step2College = ({ form }) => {
 const Step3Personal = ({ form }) => {
     const { register, formState: { errors }, watch } = form;
     const isAnonymous = watch('isAnonymous');
+    const additionalMessage = watch('additionalMessage') || '';
 
     return (
         <motion.div
@@ -390,6 +425,7 @@ const Step3Personal = ({ form }) => {
                             rows={3}
                             maxLength={200}
                             showCount
+                            value={additionalMessage}
                             error={errors.additionalMessage?.message}
                             {...register('additionalMessage')}
                         />
@@ -418,6 +454,27 @@ const Step4Preview = ({ data }) => {
                         <p className="whitespace-pre-wrap">{data.message}</p>
                     </div>
 
+                    {data.songLink && (
+                        <div className="p-4 bg-primary-500/10 border border-primary-500/20 rounded-xl">
+                            <p className="text-sm text-gray-400 mb-1">Song Link 🎵</p>
+                            <a
+                                href={data.songLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary-400 hover:text-primary-300 break-all"
+                            >
+                                {data.songLink}
+                            </a>
+                        </div>
+                    )}
+
+                    {data.recipientHint && (
+                        <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl">
+                            <p className="text-sm text-gray-400 mb-1">Hints for Recipient 💡</p>
+                            <p className="text-purple-300">{data.recipientHint}</p>
+                        </div>
+                    )}
+
                     <div className="grid md:grid-cols-2 gap-4">
                         <div className="p-4 bg-white/5 rounded-xl">
                             <p className="text-sm text-gray-400 mb-1">College</p>
@@ -433,9 +490,16 @@ const Step4Preview = ({ data }) => {
                         </div>
                         <div className="p-4 bg-white/5 rounded-xl">
                             <p className="text-sm text-gray-400 mb-1">From</p>
-                            <p className="font-medium">{data.isAnonymous ? 'Anonymous' : data.senderName}</p>
+                            <p className="font-medium">{data.isAnonymous ? 'Anonymous 🎭' : data.senderName}</p>
                         </div>
                     </div>
+
+                    {!data.isAnonymous && data.additionalMessage && (
+                        <div className="p-4 bg-white/5 rounded-xl border border-primary-500/20">
+                            <p className="text-sm text-gray-400 mb-1">Additional Message</p>
+                            <p className="italic text-gray-300">"{data.additionalMessage}"</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </motion.div>

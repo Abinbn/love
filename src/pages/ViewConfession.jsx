@@ -153,6 +153,21 @@ const ViewConfession = () => {
                             </p>
                         </div>
 
+                        {/* Song Link */}
+                        {confession.song_link && (
+                            <div className="mb-6 p-4 bg-primary-500/10 border border-primary-500/20 rounded-xl">
+                                <p className="text-sm text-gray-400 mb-2">Song Link 🎵</p>
+                                <a
+                                    href={confession.song_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary-400 hover:text-primary-300 break-all underline"
+                                >
+                                    {confession.song_link}
+                                </a>
+                            </div>
+                        )}
+
                         {/* College Info */}
                         <div className="grid md:grid-cols-3 gap-4 mb-6 p-4 bg-white/5 rounded-xl">
                             <div>
