@@ -319,21 +319,21 @@ const ViewConfession = () => {
                     {/* Reactions */}
                     <Card className="mb-8">
                         <h3 className="text-lg font-semibold mb-4">React to this confession</h3>
-                        <div className="flex justify-center gap-4 mb-8">
-                            {Object.entries(REACTION_TYPES).map(([type, emoji]) => {
-                                const hasReacted = userReactions.has(type);
+                        <div className="flex justify-center gap-4">
+                            {REACTION_TYPES.map((reaction) => {
+                                const hasReacted = userReactions.has(reaction.type);
                                 return (
                                     <button
-                                        key={type}
-                                        onClick={() => handleReaction(type)}
+                                        key={reaction.type}
+                                        onClick={() => handleReaction(reaction.type)}
                                         disabled={hasReacted}
                                         className={`glass rounded-full px-6 py-3 flex items-center gap-3 transition-all ${hasReacted
                                                 ? 'bg-primary-500/30 cursor-not-allowed opacity-75'
                                                 : 'hover:bg-white/10 hover:scale-110 active:scale-95'
                                             }`}
                                     >
-                                        <span className="text-2xl">{emoji}</span>
-                                        <span className="font-semibold">{reactions[type] || 0}</span>
+                                        <span className="text-2xl">{reaction.emoji}</span>
+                                        <span className="font-semibold">{reactions[reaction.type] || 0}</span>
                                         {hasReacted && <span className="text-xs text-primary-400">✓</span>}
                                     </button>
                                 );
